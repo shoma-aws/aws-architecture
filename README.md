@@ -4,4 +4,4 @@ This repository contains AWS architecture diagrams for SAA study.
 
 ## Web Architecture
 
-![architecture](architecture.png)
+![VPC](./VPC.drawio.png)
