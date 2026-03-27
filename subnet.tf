@@ -1,4 +1,4 @@
-'PublicSubnetを作成
+#PublicSubnetを作成
 resource "aws_subnet" "public_a" {
 	vpc_id = aws_vpc.main.id
 	cidr_block = "10.0.1.0/24"
@@ -16,7 +16,7 @@ resource "aws_subnet" "public_c" {
 	}
 }
 
-'PrivateSubnetを作成
+#PrivateSubnetを作成
 resource "aws_subnet" "private_a" {
 	vpc_id = aws_vpc.main.id
 	cidr_block = "10.0.11.0/24"
@@ -34,7 +34,7 @@ resource "aws_subnet" "private_c" {
 	}
 }
 
-'DBSubnetを作成
+#DBSubnetを作成
 resource "aws_subnet" "db_a" {
 	vpc_id = aws_vpc.main.id
 	cidr_block = "10.0.21.0/24"
