@@ -9,6 +9,9 @@ Terraform で理解・実装するための学習用リポジトリです。
 - 2AZ 構成
 - Internet Gateway
 - Public Route Table
+- Application Load Balancer
+- Target Group
+
 
 
 ## 設計方針
