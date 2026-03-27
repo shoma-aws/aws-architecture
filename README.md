@@ -20,4 +20,11 @@ Terraform で理解・実装するための学習用リポジトリです。
 - drow.ioにて既に構成図作成済み
 
 
+## 今後の予定
+- Private Subnet に EC2 を配置
+- Auto Scaling Group によるスケール構成
+- ALB → Target Group → EC2 の接続
+- CloudWatch による監視設定
+
+
 ![VPC](./VPC.drawio.png)
