@@ -1,4 +1,4 @@
-'InternetGatewayを作成
+#InternetGatewayを作成
 resource "aws_internet_gateway" "main" {
 	vpc_id = aws_vpc.main.id
 	tags = {
@@ -6,7 +6,7 @@ resource "aws_internet_gateway" "main" {
  	}
 }
 
-'PublicRouteTableを作成
+#PublicRouteTableを作成
 resource "aws_route_table" "public" {
 	vpc_id = aws_vpc.main.id
 	route {
@@ -18,7 +18,7 @@ resource "aws_route_table" "public" {
 	}
 }
 
-'RouteTableをPublicSubnetに紐づけ
+#RouteTableをPublicSubnetに紐づけ
 resource "aws_route_table_association" "public_a" {
 	subnet_id = aws_subnet.public_a.id
 	route_table_id = aws_route_table.public.id
