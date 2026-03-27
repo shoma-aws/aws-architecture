@@ -1,7 +1,17 @@
-# AWS Architecture
+# Terraform AWS 基本構成
 
-This repository contains AWS architecture diagrams for SAA study.
+AWS の基本的なネットワーク構成（VPC / Subnet）を
+Terraform で理解・実装するための学習用リポジトリです。
 
-## Web Architecture
+## 現在の構成
+- VPC
+- Public / Private / DB Subnet
+- 2AZ 構成
+
+## 設計方針
+- 理解を優先し、リソースは明示的に定義
+- 後続で count / locals によるリファクタを予定
+-drow.ioにて既に構成図作成済み
+
 
 ![VPC](./VPC.drawio.png)
