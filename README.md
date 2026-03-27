@@ -7,6 +7,9 @@ Terraform で理解・実装するための学習用リポジトリです。
 - VPC
 - Public / Private / DB Subnet
 - 2AZ 構成
+- Internet Gateway
+- Public Route Table
+
 
 ## 設計方針
 - 理解を優先し、リソースは明示的に定義
