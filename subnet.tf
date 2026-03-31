@@ -38,7 +38,7 @@ resource "aws_subnet" "private_c" {
 resource "aws_subnet" "db_a" {
 	vpc_id = aws_vpc.main.id
 	cidr_block = "10.0.21.0/24"
-	availabirity_zone = "ap-northeast-1a"
+	availability_zone = "ap-northeast-1a"
 	tags = {
 		Name = "db-subnet-a"
 	}
