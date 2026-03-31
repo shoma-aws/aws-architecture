@@ -6,7 +6,7 @@ resource "aws_vpc" "main" {
 
 	tags = {
 		Name = "sample-vpc"
-		Enviroment = "dev"
+		Environment = "dev"
 		ManagedBy = "terraform"
 	}
 }
