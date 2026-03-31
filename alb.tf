@@ -37,12 +37,22 @@ resource "aws_alb" "app" {
 resource "aws_lb_target_group" "app" {
 	name = "app-tg"
 	port = 80
-	protcol = "HTTP"
+	protocol = "HTTP"
 	vpc_id = aws_vpc.main.id
 	health_check {
 		path = "/"          #とりあえず"/"で指定。ヘルスチェック用のサーバーがあればそれに変更
 		}
 	tags = {
 		Name = "app-tg"
+	}
+}
+#ALB listenerを作成
+resource "aws_lb_listener" "http" {
+	load_balancer_arn = aws_lb.app.arn
+	port              = 80
+	protocol          = "HTTP"
+	default_action {
+		type      = "forward"
+		target_group_arn = aws_lb_target_group.app.arn
 	}
 }
