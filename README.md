@@ -32,4 +32,7 @@ Terraform で理解・実装するための学習用リポジトリです。
 ![VPC](./VPCver1.0.png)
 
 ### 修正版ver1.1
+画像ではALBがsubnetに属していないように見えますが、見た目上の理由であえてこのような形をとっています。
+※本来はALBはPublicSubnetに属することは理解しています。
+
 ![修正版VPC](./基本的なVPC構成図.drawio.png)
