@@ -21,10 +21,7 @@ Terraform で理解・実装するための学習用リポジトリです。
 
 
 ## 今後の予定
-- Private Subnet に EC2 を配置
-- Auto Scaling Group によるスケール構成
-- ALB → Target Group → EC2 の接続
-- CloudWatch による監視設定
+-apply時のマネジメントコンソール上のスクリーンショット随時添付
 
 ### 初期版ver1.0
 ![VPC](./VPC.drawio.png)
