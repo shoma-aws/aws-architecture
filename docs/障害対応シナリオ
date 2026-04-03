@@ -1,0 +1,28 @@
+
+# 障害対応シナリオ
+
+本ディレクトリでは、Terraform で構築した AWS 環境を用いて、
+運用・障害対応の練習として実施したシナリオを整理しています。
+
+## 前提構成
+- VPC / Public & Private Subnet
+- ALB + Listener + Target Group
+- Auto Scaling Group 配下の EC2
+- CloudWatch による監視
+
+## シナリオ一覧
+
+1. Security Group 誤設定による Web アクセス不可
+2. SSH 接続不可
+3. Nginx が起動していない
+4. サービスは起動しているがアクセス不可
+5. Disk Full による Web 停止
+6. CPU 高騰によるレスポンス悪化
+7. ALB ターゲットが Unhealthy
+8. IAM Role 不足による AWS API エラー
+9. Terraform apply 失敗
+10. 手動変更による Terraform 差分発生
+
+## 現在の状況
+- 毎週土日に1シナリオ行います。
+- 障害対応履歴0
