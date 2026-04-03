@@ -26,5 +26,8 @@ Terraform で理解・実装するための学習用リポジトリです。
 - ALB → Target Group → EC2 の接続
 - CloudWatch による監視設定
 
-
+### 初期版ver1.0
 ![VPC](./VPC.drawio.png)
+
+### 修正版ver1.1
+![修正版VPC](.基本的なVPC構成図.drawio.png)
