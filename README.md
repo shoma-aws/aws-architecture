@@ -29,7 +29,7 @@ Terraform で理解・実装するための学習用リポジトリです。
 
 
 ### 初期版ver1.0
-![VPC](./VPC. Ver1.0.drawio.png)
+![VPC](./VPC.ver1.0.drawio.png)
 
 ### 修正版ver1.1
 ![修正版VPC](./基本的なVPC構成図.drawio.png)
