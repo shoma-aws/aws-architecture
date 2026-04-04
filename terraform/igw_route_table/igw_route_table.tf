@@ -10,11 +10,11 @@ resource "aws_internet_gateway" "main" {
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
   route {
-    cider_block = "0.0.0.0/0"
+    cidr_block = "0.0.0.0/0"
     gateway_id  = aws_internet_gateway.main.id
   }
   tags = {
-    Name = "pubric-rt"
+    Name = "public-rt"
   }
 }
 
