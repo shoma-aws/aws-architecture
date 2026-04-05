@@ -6,14 +6,14 @@ resource "aws_security_group" "ec2" {
 	ingress {
 		from_port = 80
 		to_port   = 80
-		protcol   = "tcp"
+		protocol   = "tcp"
 		security_group = [aws_security_group.alb.id]
 	}
 	#外向き通信は許可
 	egress {
 		from_port  = 0
 		to_port    = 0
-		protcol    = "-1"
+		protocol    = "-1"
 		cidr_block = ["0.0.0.0/0"]
 	}
 	tags = {
@@ -44,7 +44,7 @@ resource "aws_autoscaling_group" "app" {
 	desired_capacity = 2
 	max_size         = 2
 	min_size         = 2
-	vpc_zone_identifier = [aws_subnet.private_a.id,aws_subnet.privete_c.id]
+	vpc_zone_identifier = [aws_subnet.private_a.id,aws_subnet.private_c.id]
 	
 	target_group_arns = [
 	aws_lb_target_group.app.arc
