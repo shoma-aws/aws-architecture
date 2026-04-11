@@ -24,7 +24,7 @@ resource "aws_security_group" "ec2" {
 #Launch Templateを作成
 resource "aws_launch_template" "app" {
   name_prefix            = "app-lt-"
-  image_id               = "ami-f36dcfcc94112ea1" #Amazon Linux2023を使用
+  image_id               = "ami-00142334f8aedd43f" #Amazon Linux2023を使用
   instance_type          = "t3.micro"
   vpc_security_group_ids = [aws_security_group.ec2.id]
   user_data = base64encode(<<EOF
