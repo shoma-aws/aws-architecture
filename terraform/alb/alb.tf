@@ -20,7 +20,7 @@ resource "aws_security_group" "alb" {
 }
 
 #ALBを作成
-resource "aws_alb" "app" {
+resource "aws_lb" "app" {
   name               = "app-alb"
   load_balancer_type = "application"
   internal           = false
