@@ -2,6 +2,7 @@
 
 AWS の基本的なネットワーク構成（VPC / Subnet）を
 Terraform で理解・実装するための学習用リポジトリです。
+※Nat Gatewayは障害対応用に一時的に作成しましたがコストがかかるため削除しています。
 
 ## 現在の構成
 - VPC
@@ -11,6 +12,7 @@ Terraform で理解・実装するための学習用リポジトリです。
 - Public Route Table
 - Application Load Balancer
 - Target Group
+- Nat Gateway
 
 
 
