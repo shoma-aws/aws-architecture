@@ -1,6 +1,6 @@
 #CloudWatch CPU使用率アラーム
 resource "aws_cloudwatch_metric_alarm" "ec2_cpu_high" {
-	alerm_name = "ec2-cpu-high"
+	alarm_name = "ec2-cpu-high"
 	comparison_operator = "GreaterThanThreshold"
 	evaluation_periods  = 2
 	metric_name         = "CPUUtilization"
