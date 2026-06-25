@@ -37,8 +37,12 @@ sentiment = result['Sentiment']
 
 # DynamoDBへ保存
 table.put_item(
-        Item={'id': key,'text': text,'sentiment': sentiment}
-                )
+        Item={
+                'id': key,
+                'text': text,
+                'sentiment': sentiment
+}
+)
 
 # 結果をログに出力（CloudWatchで確認できる）
 print(sentiment)
