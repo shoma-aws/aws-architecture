@@ -11,38 +11,39 @@ comprehend = boto3.client('comprehend')
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('mail-results')
 
+
 # Lambdaが実行されたときに最初に呼ばれる関数
 def lambda_handler(event, context):
 
-# S3イベントから「どのバケットか」を取得
-bucket = event['Records'][0]['s3']['bucket']['name']
+    # S3イベントから「どのバケットか」を取得
+    bucket = event['Records'][0]['s3']['bucket']['name']
 
-# S3イベントから「どのファイルか」を取得
-key = event['Records'][0]['s3']['object']['key']
+    # S3イベントから「どのファイルか」を取得
+    key = event['Records'][0]['s3']['object']['key']
 
-# S3からファイルを取得（メールの内容）
-response = s3.get_object(Bucket=bucket, Key=key)
+    # S3からファイルを取得（メールの内容）
+    response = s3.get_object(Bucket=bucket, Key=key)
 
-# ファイルの中身を読み込み、文字列に変換（UTF-8形式）
-text = response['Body'].read().decode('utf-8')
+    # ファイルの中身を読み込み、文字列に変換（UTF-8形式）
+    text = response['Body'].read().decode('utf-8')
 
-# Comprehendにテキストを渡して感情分析を実行
-result = comprehend.detect_sentiment(
-        Text=text,          # 分析する文章
-        LanguageCode='ja'   # 日本語として解析
- )
+    # Comprehendにテキストを渡して感情分析を実行
+    result = comprehend.detect_sentiment(
+        Text=text,
+        LanguageCode='ja'
+    )
 
-# 分析結果（POSITIVE / NEGATIVE など）を取得
-sentiment = result['Sentiment']
+    # 分析結果（POSITIVE / NEGATIVE など）を取得
+    sentiment = result['Sentiment']
 
-# DynamoDBへ保存
-table.put_item(
+    # DynamoDBへ保存
+    table.put_item(
         Item={
-                'id': key,
-                'text': text,
-                'sentiment': sentiment
-}
-)
+            'id': key,
+            'text': text,
+            'sentiment': sentiment
+        }
+    )
 
-# 結果をログに出力（CloudWatchで確認できる）
-print(sentiment)
+    # 結果をログに出力（CloudWatchで確認できる）
+    print(sentiment)
