@@ -7,6 +7,9 @@ s3 = boto3.client('s3')
 # Comprehendを操作する準備
 comprehend = boto3.client('comprehend')
 
+# DynamoDBにデータを渡す準備
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('mail-results')
 
 # Lambdaが実行されたときに最初に呼ばれる関数
 def lambda_handler(event, context):
@@ -31,6 +34,11 @@ result = comprehend.detect_sentiment(
 
 # 分析結果（POSITIVE / NEGATIVE など）を取得
 sentiment = result['Sentiment']
+
+# DynamoDBへ保存
+table.put_item(
+        Item={'id': key,'text': text,'sentiment': sentiment}
+                )
 
 # 結果をログに出力（CloudWatchで確認できる）
 print(sentiment)
