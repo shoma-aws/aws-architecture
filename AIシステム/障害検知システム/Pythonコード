@@ -17,7 +17,7 @@ def lambda_handler(event, context):
     # ① CloudWatch Logs取得
     # =========================
 
-    log_group_name = "あなたのロググループ名"
+    log_group_name = 
 
     logs_response = logs_client.filter_log_events(
         logGroupName=log_group_name,
