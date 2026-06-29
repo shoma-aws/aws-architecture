@@ -1,14 +1,22 @@
 import boto3
+import json
 from datetime import datetime, timedelta
 
-# CloudWatch Logs（ログ取得）
+# =========================
+# AWSサービスへ接続（＝リモコンを作る）
+# =========================
+
+# CloudWatch Logs（ログを取得するためのクライアント）
 logs_client = boto3.client('logs')
 
-# CloudWatch Metrics（CPU取得）
+# CloudWatch Metrics（CPUなどのメトリクス取得）
 cloudwatch = boto3.client('cloudwatch')
 
 # CloudTrail（操作履歴取得）
 cloudtrail = boto3.client('cloudtrail')
+
+# Bedrock（AIを使うためのクライアント）
+bedrock = boto3.client('bedrock-runtime')
 
 
 def lambda_handler(event, context):
@@ -17,60 +25,147 @@ def lambda_handler(event, context):
     # ① CloudWatch Logs取得
     # =========================
 
-    log_group_name = 
+    # ロググループ名を指定（どのログを見るか）
+    log_group_name = "あなたのロググループ名"
 
+    # CloudWatch LogsのAPIを使ってログを取得
     logs_response = logs_client.filter_log_events(
         logGroupName=log_group_name,
-        limit=5  # 最新5件だけ取得
+        limit=5  # 最新5件だけ取る
     )
 
-    log_messages = [event['message'] for event in logs_response['events']]
+    # logs_responseは複雑な構造なので、
+    # message（ログ本文）だけ取り出してシンプルなリストにする
+    log_messages = [log['message'] for log in logs_response['events']]
 
 
     # =========================
     # ② CPUメトリクス取得
     # =========================
 
+    # 現在時刻（UTC）を取得
     now = datetime.utcnow()
+
+    # 10分前の時刻を作成
     start_time = now - timedelta(minutes=10)
 
+    # CloudWatch Metrics APIでCPU使用率を取得
     metrics_response = cloudwatch.get_metric_statistics(
-        Namespace='AWS/EC2',
-        MetricName='CPUUtilization',
+        Namespace='AWS/EC2',              # EC2のメトリクス
+        MetricName='CPUUtilization',      # CPU使用率
         Dimensions=[
             {
                 'Name': 'InstanceId',
                 'Value': 'あなたのインスタンスID'
             },
         ],
-        StartTime=start_time,
-        EndTime=now,
-        Period=300,
-        Statistics=['Average']
+        StartTime=start_time,             # 10分前
+        EndTime=now,                      # 現在
+        Period=300,                       # 5分単位
+        Statistics=['Average']            # 平均値
     )
 
+    # Datapointsはリスト形式なので、そのまま取得
     cpu = metrics_response['Datapoints']
 
 
     # =========================
-    # ③ CloudTrail（操作履歴）
+    # ③ CloudTrail（操作履歴取得）
     # =========================
 
+    # 操作履歴を広く取得（原因を決め打ちしない）
     trail_response = cloudtrail.lookup_events(
-        LookupAttributes=[
-            {
-                'AttributeKey': 'EventName',
-                'AttributeValue': 'SendCommand'  # SSMコマンド実行
-            },
-        ],
-        MaxResults=5
+        MaxResults=20
     )
 
+    # Events（実際の操作履歴）だけ取り出す
     events = trail_response['Events']
+
+    # AIに渡しやすくするための空リスト
+    event_list = []
+
+    # 操作履歴を1個ずつ処理
+    for event_item in events:
+
+        # 必要な情報だけ取り出して整形
+        event_list.append({
+            "event_name": event_item['EventName'],   # 何をしたか
+            "time": str(event_item['EventTime'])     # いつしたか
+        })
 
 
     # =========================
-    # ④ 結果をまとめる（重要）
+    # ④ 分析データまとめ（構造データ）
+    # =========================
+
+    # ここでは「データとしてまとめている」
+    # まだAIには渡していない
+    analysis_input = {
+        "cpu": cpu,
+        "logs": log_messages,
+        "events": event_list
+    }
+
+
+    # =========================
+    # ⑤ AIに渡す文章作成
+    # =========================
+
+    # f文字列を使い、Pythonのデータを文章に変換
+    # AIは「文章」で与える方が推論しやすい
+    analysis_text = f"""
+以下の情報からシステムの状態を分析してください
+
+【CPU使用率】
+{cpu}
+
+【ログ】
+{log_messages}
+
+【操作履歴】
+{event_list}
+
+【出力形式】
+・原因
+・状態（正常 / 注意 / 異常）
+・推奨対応
+"""
+
+
+    # =========================
+    # ⑥ BedrockでAI実行
+    # =========================
+
+    # invoke_model = AIにリクエストを送る
+    response = bedrock.invoke_model(
+        modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+        body=f"""{{
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 500,
+            "messages": [
+                {{
+                    "role": "user",
+                    "content": "{analysis_text}"
+                }}
+            ]
+        }}"""
+    )
+
+
+    # =========================
+    # ⑦ AIの結果を取得
+    # =========================
+
+    # AIのレスポンスはJSON形式（文字）なのでPythonに変換
+    response_body = json.loads(response['body'].read())
+
+    # content → 配列 → 1個目 → text を取り出す
+    # = AIの答えだけ抜き出す
+    result = response_body['content'][0]['text']
+
+
+    # =========================
+    # ⑧ 結果をログに出力（確認用）
     # =========================
 
     print("===== Logs =====")
@@ -80,9 +175,12 @@ def lambda_handler(event, context):
     print("===== CPU =====")
     print(cpu)
 
-    print("===== CloudTrail =====")
-    for e in events:
-        print(e['EventName'], e['EventTime'])
+    print("===== Events =====")
+    for ev in event_list:
+        print(ev)
+
+    print("===== AI分析結果 =====")
+    print(result)
 
 
     return {
