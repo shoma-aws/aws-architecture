@@ -1,0 +1,91 @@
+import boto3
+from datetime import datetime, timedelta
+
+# CloudWatch Logs（ログ取得）
+logs_client = boto3.client('logs')
+
+# CloudWatch Metrics（CPU取得）
+cloudwatch = boto3.client('cloudwatch')
+
+# CloudTrail（操作履歴取得）
+cloudtrail = boto3.client('cloudtrail')
+
+
+def lambda_handler(event, context):
+
+    # =========================
+    # ① CloudWatch Logs取得
+    # =========================
+
+    log_group_name = "あなたのロググループ名"
+
+    logs_response = logs_client.filter_log_events(
+        logGroupName=log_group_name,
+        limit=5  # 最新5件だけ取得
+    )
+
+    log_messages = [event['message'] for event in logs_response['events']]
+
+
+    # =========================
+    # ② CPUメトリクス取得
+    # =========================
+
+    now = datetime.utcnow()
+    start_time = now - timedelta(minutes=10)
+
+    metrics_response = cloudwatch.get_metric_statistics(
+        Namespace='AWS/EC2',
+        MetricName='CPUUtilization',
+        Dimensions=[
+            {
+                'Name': 'InstanceId',
+                'Value': 'あなたのインスタンスID'
+            },
+        ],
+        StartTime=start_time,
+        EndTime=now,
+        Period=300,
+        Statistics=['Average']
+    )
+
+    cpu = metrics_response['Datapoints']
+
+
+    # =========================
+    # ③ CloudTrail（操作履歴）
+    # =========================
+
+    trail_response = cloudtrail.lookup_events(
+        LookupAttributes=[
+            {
+                'AttributeKey': 'EventName',
+                'AttributeValue': 'SendCommand'  # SSMコマンド実行
+            },
+        ],
+        MaxResults=5
+    )
+
+    events = trail_response['Events']
+
+
+    # =========================
+    # ④ 結果をまとめる（重要）
+    # =========================
+
+    print("===== Logs =====")
+    for msg in log_messages:
+        print(msg)
+
+    print("===== CPU =====")
+    print(cpu)
+
+    print("===== CloudTrail =====")
+    for e in events:
+        print(e['EventName'], e['EventTime'])
+
+
+    return {
+        'statusCode': 200,
+        'body': 'OK'
+    }
