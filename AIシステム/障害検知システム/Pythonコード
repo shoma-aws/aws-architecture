@@ -26,7 +26,7 @@ def lambda_handler(event, context):
     # =========================
 
     # ロググループ名を指定（どのログを見るか）
-    log_group_name = "あなたのロググループ名"
+    log_group_name = "後で修正"
 
     # CloudWatch LogsのAPIを使ってログを取得
     logs_response = logs_client.filter_log_events(
@@ -56,7 +56,7 @@ def lambda_handler(event, context):
         Dimensions=[
             {
                 'Name': 'InstanceId',
-                'Value': 'あなたのインスタンスID'
+                'Value': 'インスタンスID'
             },
         ],
         StartTime=start_time,             # 10分前
