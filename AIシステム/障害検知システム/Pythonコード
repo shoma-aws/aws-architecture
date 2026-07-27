@@ -26,7 +26,7 @@ def lambda_handler(event, context):
     # =========================
 
     # ロググループ名を指定（どのログを見るか）
-    log_group_name = "後で修正"
+    log_group_name = "access.log"
 
     # CloudWatch LogsのAPIを使ってログを取得
     logs_response = logs_client.filter_log_events(
@@ -36,7 +36,10 @@ def lambda_handler(event, context):
 
     # logs_responseは複雑な構造なので、
     # message（ログ本文）だけ取り出してシンプルなリストにする
-    log_messages = [log['message'] for log in logs_response['events']]
+    log_messages = [
+        log['message']
+        for log in logs_response.get('events', [])
+    ]
 
 
     # =========================
@@ -56,7 +59,7 @@ def lambda_handler(event, context):
         Dimensions=[
             {
                 'Name': 'InstanceId',
-                'Value': 'インスタンスID'
+                'Value': 'i-03cb6ec9f34bce73d'
             },
         ],
         StartTime=start_time,             # 10分前
@@ -66,7 +69,7 @@ def lambda_handler(event, context):
     )
 
     # Datapointsはリスト形式なので、そのまま取得
-    cpu = metrics_response['Datapoints']
+    cpu = metrics_response.get('Datapoints', [])
 
 
     # =========================
@@ -79,7 +82,7 @@ def lambda_handler(event, context):
     )
 
     # Events（実際の操作履歴）だけ取り出す
-    events = trail_response['Events']
+    events = trail_response.get('Events', [])
 
     # AIに渡しやすくするための空リスト
     event_list = []
@@ -89,8 +92,8 @@ def lambda_handler(event, context):
 
         # 必要な情報だけ取り出して整形
         event_list.append({
-            "event_name": event_item['EventName'],   # 何をしたか
-            "time": str(event_item['EventTime'])     # いつしたか
+            "event_name": event_item.get('EventName', '不明'),
+            "time": str(event_item.get('EventTime', '不明'))
         })
 
 
@@ -111,24 +114,35 @@ def lambda_handler(event, context):
     # ⑤ AIに渡す文章作成
     # =========================
 
-    # f文字列を使い、Pythonのデータを文章に変換
-    # AIは「文章」で与える方が推論しやすい
+    # PythonのデータをJSON文字列に変換する
+    # default=str を指定することで、
+    # datetimeなどJSONに直接変換できない値も文字列にできる
+    analysis_data_json = json.dumps(
+        analysis_input,
+        ensure_ascii=False,
+        default=str,
+        indent=2
+    )
+
+    # AIに分析してもらう指示文を作成
     analysis_text = f"""
-以下の情報からシステムの状態を分析してください
+以下のAWSシステム情報を分析してください。
 
-【CPU使用率】
-{cpu}
+【分析対象データ】
+{analysis_data_json}
 
-【ログ】
-{log_messages}
-
-【操作履歴】
-{event_list}
+【確認してほしい内容】
+・CPU使用率に異常がないか
+・アクセスログに問題がないか
+・CloudTrailの操作履歴に異常な変更がないか
+・障害や性能低下につながる可能性があるか
 
 【出力形式】
 ・原因
 ・状態（正常 / 注意 / 異常）
 ・推奨対応
+
+専門用語を使いすぎず、日本語で分かりやすく回答してください。
 """
 
 
@@ -136,19 +150,36 @@ def lambda_handler(event, context):
     # ⑥ BedrockでAI実行
     # =========================
 
+    # Bedrockへ送信するリクエスト内容を
+    # Pythonの辞書として作成する
+    request_body = {
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 500,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": analysis_text
+                    }
+                ]
+            }
+        ]
+    }
+
     # invoke_model = AIにリクエストを送る
+    # json.dumpsを使うことで、
+    # ログ内の改行やダブルクォーテーションがあっても
+    # 正しいJSON形式で送信できる
     response = bedrock.invoke_model(
-        modelId="anthropic.claude-3-sonnet-20240229-v1:0",
-        body=f"""{{
-            "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": 500,
-            "messages": [
-                {{
-                    "role": "user",
-                    "content": "{analysis_text}"
-                }}
-            ]
-        }}"""
+        modelId="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        contentType="application/json",
+        accept="application/json",
+        body=json.dumps(
+            request_body,
+            ensure_ascii=False
+        )
     )
 
 
@@ -157,7 +188,9 @@ def lambda_handler(event, context):
     # =========================
 
     # AIのレスポンスはJSON形式（文字）なのでPythonに変換
-    response_body = json.loads(response['body'].read())
+    response_body = json.loads(
+        response['body'].read().decode('utf-8')
+    )
 
     # content → 配列 → 1個目 → text を取り出す
     # = AIの答えだけ抜き出す
@@ -185,5 +218,11 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
-        'body': 'OK'
+        'body': json.dumps(
+            {
+                'message': 'AI分析が完了しました',
+                'result': result
+            },
+            ensure_ascii=False
+        )
     }
